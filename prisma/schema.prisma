@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── AGENTS ───────────────────────────────────────────────────────────────────
+
+model Agent {
+  id           String   @id @default(uuid())
+  slug         String   @unique         // "nora" | "bruno" | "bianca" | "alfred"
+  name         String                   // "Nora — Investigación"
+  role         String                   // "researcher" | "analyst" | "creative_director" | "supervisor"
+  description  String
+  config       Json                     // AgentConfig { allowedTools, forbiddenTools, maxBudgetPerRun, maxSteps }
+  currentState String   @default("idle")
+  currentZone  String?                  // OfficeZone — synced to office-ui
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tasks     Task[]
+  events    Event[]
+}
+
+// ─── TASKS ────────────────────────────────────────────────────────────────────
+
+model Task {
+  id          String    @id @default(uuid())
+  type        String                   // "research" | "analysis" | "ideation" | "supervision"
+  title       String
+  description String
+  status      String    @default("pending")
+  priority    Int       @default(0)
+  input       Json                     // data passed to the agent
+  output      Json?                    // validated agent output
+  retryCount  Int       @default(0)
+  maxRetries  Int       @default(3)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  assignedTo    String?
+  agent         Agent?       @relation(fields: [assignedTo], references: [id])
+
+  pipelineRunId String?
+  pipelineRun   PipelineRun? @relation(fields: [pipelineRunId], references: [id])
+
+  ideas     Idea[]
+  events    Event[]
+  decisions HumanDecision[]
+}
+
+// ─── PIPELINE RUN ──────────────────────────────────────────────────────────────
+
+model PipelineRun {
+  id          String    @id @default(uuid())
+  type        String                   // "creative_flow"
+  triggerType String                   // "manual" | "webhook"
+  triggerData Json                     // raw trigger payload
+  status      String    @default("pending")
+  currentStep Int       @default(0)
+  steps       Json                     // PipelineStep[]
+  context     Json      @default("{}")  // accumulated outputs keyed by agentSlug
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  tasks     Task[]
+  events    Event[]
+  decisions HumanDecision[]
+  brief     Brief?
+}
+
+// ─── BRIEF ────────────────────────────────────────────────────────────────────
+
+model Brief {
+  id             String   @id @default(uuid())
+  title          String
+  content        String
+  objectives     Json                   // string[]
+  targetAudience String?
+  tone           String?
+  createdAt      DateTime @default(now())
+
+  pipelineRunId  String      @unique
+  pipelineRun    PipelineRun @relation(fields: [pipelineRunId], references: [id])
+
+  ideas Idea[]
+}
+
+// ─── IDEAS ────────────────────────────────────────────────────────────────────
+
+model Idea {
+  id         String   @id @default(uuid())
+  title      String
+  concept    String
+  hook       String
+  format     String                   // "reel" | "carousel" | "blog" | "video" | "thread"
+  scores     Json                     // IdeaScores
+  totalScore Float?                   // avg of 5 scores, calculated on insert
+  status     String   @default("proposed")
+  approvedBy String?                  // "agent:alfred" | "human:matias"
+  reasoning  String?                  // why approved/discarded
+  createdAt  DateTime @default(now())
+
+  briefId String
+  brief   Brief  @relation(fields: [briefId], references: [id])
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id])
+}
+
+// ─── EVENTS ───────────────────────────────────────────────────────────────────
+
+model Event {
+  id        String   @id @default(uuid())
+  type      String                   // EventType enum value
+  payload   Json
+  timestamp DateTime @default(now())
+
+  agentId String?
+  agent   Agent?  @relation(fields: [agentId], references: [id])
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id])
+
+  pipelineRunId String?
+  pipelineRun   PipelineRun? @relation(fields: [pipelineRunId], references: [id])
+}
+
+// ─── AUDIT LOG ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  action       String                   // "task_assigned", "llm_invocation", "idea_scored", etc.
+  actor        String                   // "agent:nora" | "agent:alfred" | "human:matias" | "system"
+  details      Json
+  resourceType String                   // "task" | "idea" | "pipeline" | "agent"
+  resourceId   String
+  timestamp    DateTime @default(now())
+}
+
+// ─── HUMAN DECISIONS ──────────────────────────────────────────────────────────
+
+model HumanDecision {
+  id          String    @id @default(uuid())
+  question    String
+  options     Json                     // string[]
+  requestedBy String                   // "agent:alfred"
+  decision    String?                  // chosen option
+  decidedBy   String?                  // "human:matias"
+  decidedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id])
+
+  pipelineRunId String?
+  pipelineRun   PipelineRun? @relation(fields: [pipelineRunId], references: [id])
+}
