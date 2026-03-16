@@ -35,6 +35,10 @@ body {
 .sidebar { width: 350px; background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
 .panel { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; }
 
+.view-tab { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-weight: 500; font-family: var(--font-primary); transition: all 0.2s ease; }
+.view-tab:hover { background-color: var(--bg-tertiary); color: var(--text-primary); }
+.view-tab.active { background-color: rgba(56, 189, 248, 0.1); color: var(--text-accent); border-color: var(--status-working); }
+
 h1, h2, h3 { font-weight: 600; color: var(--text-primary); }
 .text-muted { color: var(--text-secondary); font-size: 0.875rem; }
 

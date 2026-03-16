@@ -4,10 +4,13 @@ import { AgentGrid } from './components/AgentGrid';
 import { EventTimeline } from './components/EventTimeline';
 import { PipelineStatus } from './components/PipelineStatus';
 import { DecisionPanel } from './components/DecisionPanel';
-import { Bot, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { FloorPlanView } from './components/pixel/FloorPlanView';
+import { Bot, RefreshCw, Wifi, WifiOff, LayoutDashboard, Map } from 'lucide-react';
+import { useState } from 'react';
 
 function App() {
   const { state, error, isConnected, refresh } = useOfficeState();
+  const [viewMode, setViewMode] = useState<'dashboard' | 'floorplan'>('dashboard');
 
   if (error) {
     return (
@@ -48,9 +51,32 @@ function App() {
         {/* Top Section: Active Pipeline */}
         <PipelineStatus pipeline={state.activePipeline} />
 
-        {/* Middle Section: The Office Floor */}
-        <h2 style={{ margin: '1rem 0 0.5rem' }}>Planta de Operaciones</h2>
-        <AgentGrid agents={state.agents} />
+        {/* View Toggle */}
+        <div style={{ display: 'flex', gap: '0.5rem', margin: '1rem 0 0.5rem' }}>
+          <button 
+            onClick={() => setViewMode('dashboard')}
+            className={`view-tab ${viewMode === 'dashboard' ? 'active' : ''}`}
+          >
+            <LayoutDashboard size={18} /> Dashboard
+          </button>
+          <button 
+            onClick={() => setViewMode('floorplan')}
+            className={`view-tab ${viewMode === 'floorplan' ? 'active' : ''}`}
+          >
+            <Map size={18} /> Floor Plan
+          </button>
+        </div>
+
+        {/* Dynamic Main Body */}
+        {viewMode === 'dashboard' ? (
+          <>
+             <AgentGrid agents={state.agents} />
+          </>
+        ) : (
+          <div style={{ flex: 1, minHeight: '600px' }}>
+             <FloorPlanView state={state} />
+          </div>
+        )}
       </main>
 
       {/* Right Sidebar: Timeline & Audits */}
