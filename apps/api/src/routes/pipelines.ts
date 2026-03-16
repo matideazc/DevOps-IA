@@ -123,6 +123,7 @@ export async function pipelinesRoute(fastify: FastifyInstance) {
           role: true,
           currentState: true,
           currentZone: true,
+          updatedAt: true,
           tasks: {
             where: { status: 'in_progress' },
             select: { id: true, title: true },
@@ -133,13 +134,39 @@ export async function pipelinesRoute(fastify: FastifyInstance) {
       fastify.prisma.pipelineRun.findFirst({
         where: { status: { in: ['running', 'paused'] } },
         orderBy: { createdAt: 'desc' },
-        select: { id: true, status: true, currentStep: true, steps: true },
-      }).then(async (active: { id: string; status: string; currentStep: number; steps: any; } | null) => {
+        select: { 
+          id: true, 
+          status: true, 
+          currentStep: true, 
+          steps: true,
+          createdAt: true,
+          updatedAt: true,
+          brief: { 
+            select: { 
+              title: true,
+              ideas: { select: { status: true } }
+            } 
+          }
+        },
+      }).then(async (active: any) => {
         if (active) return active;
         // If no active, return the most recent completed/failed one
         return fastify.prisma.pipelineRun.findFirst({
           orderBy: { createdAt: 'desc' },
-          select: { id: true, status: true, currentStep: true, steps: true },
+          select: { 
+            id: true, 
+            status: true, 
+            currentStep: true, 
+            steps: true,
+            createdAt: true,
+            updatedAt: true,
+            brief: { 
+              select: { 
+                title: true,
+                ideas: { select: { status: true } }
+              } 
+            }
+          },
         });
       }),
       fastify.prisma.event.findMany({
@@ -150,6 +177,21 @@ export async function pipelinesRoute(fastify: FastifyInstance) {
       fastify.prisma.humanDecision.count({ where: { decision: null } }),
     ]);
 
+    // Calculate idea stats if pipeline exists
+    let ideaStats = null;
+    let briefData = undefined;
+    
+    if (activePipeline && activePipeline.brief) {
+      briefData = { title: activePipeline.brief.title };
+      if (activePipeline.brief.ideas) {
+        ideaStats = {
+          approved: activePipeline.brief.ideas.filter((i: any) => i.status === 'approved').length,
+          discarded: activePipeline.brief.ideas.filter((i: any) => i.status === 'discarded').length,
+          proposed: activePipeline.brief.ideas.filter((i: any) => i.status === 'proposed').length
+        };
+      }
+    }
+
     return reply.send({
       agents: agents.map((a: any) => ({
         slug: a.slug,
@@ -158,8 +200,18 @@ export async function pipelinesRoute(fastify: FastifyInstance) {
         state: a.currentState,
         zone: a.currentZone ?? null,
         currentTaskTitle: a.tasks[0]?.title ?? null,
+        updatedAt: a.updatedAt
       })),
-      activePipeline,
+      activePipeline: activePipeline ? {
+        id: activePipeline.id,
+        status: activePipeline.status,
+        currentStep: activePipeline.currentStep,
+        steps: activePipeline.steps,
+        createdAt: activePipeline.createdAt,
+        updatedAt: activePipeline.updatedAt,
+        brief: briefData,
+        ideaStats
+      } : null,
       recentEvents: recentEvents.reverse(),
       pendingDecisions,
     });

@@ -1,6 +1,6 @@
-
+import { useState, useEffect } from 'react';
 import type { AgentState, OfficeZone } from '@ai-office/shared-types';
-import { Briefcase, Brain, Search, ShieldCheck } from 'lucide-react';
+import { Briefcase, Brain, Search, ShieldCheck, Clock } from 'lucide-react';
 
 interface AgentCardProps {
   slug: string;
@@ -9,6 +9,7 @@ interface AgentCardProps {
   state: AgentState;
   zone: OfficeZone | null;
   currentTaskTitle: string | null;
+  updatedAt: string;
 }
 
 const ROLE_ICONS: Record<string, React.ReactNode> = {
@@ -16,6 +17,7 @@ const ROLE_ICONS: Record<string, React.ReactNode> = {
   analyst: <Brain size={20} className="text-blue-400" />,
   creative_director: <Briefcase size={20} className="text-pink-400" />,
   supervisor: <ShieldCheck size={20} className="text-green-400" />,
+  human: <Clock size={20} className="text-yellow-400" />
 };
 
 const ZONE_LABELS: Record<string, string> = {
@@ -26,8 +28,27 @@ const ZONE_LABELS: Record<string, string> = {
   command_center: 'Centro de Comando',
 };
 
-export function AgentCard({ role, name, state, zone, currentTaskTitle }: AgentCardProps) {
+function formatRelativeTime(dateString?: string | null) {
+  if (!dateString) return 'desconocido';
+  const time = new Date(dateString).getTime();
+  if (isNaN(time)) return 'desconocido';
+  
+  const diff = Math.max(0, Date.now() - time);
+  const secs = Math.floor(diff / 1000);
+  if (secs < 60) return `hace ${secs}s`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `hace ${mins}m`;
+  return `hace ${Math.floor(mins / 60)}h`;
+}
+
+export function AgentCard({ role, name, state, zone, currentTaskTitle, updatedAt }: AgentCardProps) {
   const isWorking = state === 'working';
+  
+  const [, setNow] = useState(Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 10000); // refresh relative strings every 10s
+    return () => clearInterval(interval);
+  }, []);
   
   return (
     <div className={`agent-card ${isWorking ? 'working' : ''}`}>
@@ -54,6 +75,11 @@ export function AgentCard({ role, name, state, zone, currentTaskTitle }: AgentCa
           <div>{currentTaskTitle}</div>
         </div>
       )}
+
+      <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+        <Clock size={12} />
+        Actualizado {formatRelativeTime(updatedAt)}
+      </div>
     </div>
   );
 }

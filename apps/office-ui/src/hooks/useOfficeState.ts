@@ -10,12 +10,17 @@ export interface OfficeStateSnapshot {
     state: AgentState;
     zone: OfficeZone | null;
     currentTaskTitle: string | null;
+    updatedAt: string;
   }>;
   activePipeline: {
     id: string;
     status: string;
     currentStep: number;
     steps: any[];
+    createdAt: string;
+    updatedAt: string;
+    brief?: { title: string };
+    ideaStats?: { approved: number; discarded: number; proposed: number };
   } | null;
   recentEvents: Array<{
     id: string;
@@ -75,18 +80,21 @@ export function useOfficeState() {
               newState.agents[agentIdx] = {
                 ...newState.agents[agentIdx],
                 state: event.payload.state,
-                zone: event.payload.zone
+                zone: event.payload.zone,
+                updatedAt: new Date().toISOString()
               };
             }
           } else if (event.type === 'task.created') {
              const agentIdx = newState.agents.findIndex(a => a.slug === event.payload.agentSlug);
              if (agentIdx !== -1) {
                newState.agents[agentIdx].currentTaskTitle = event.payload.type;
+               newState.agents[agentIdx].updatedAt = new Date().toISOString();
              }
           } else if (event.type === 'task.completed' || event.type === 'task.failed') {
              const agentIdx = newState.agents.findIndex(a => a.slug === event.payload.agentSlug);
              if (agentIdx !== -1) {
                newState.agents[agentIdx].currentTaskTitle = null;
+               newState.agents[agentIdx].updatedAt = new Date().toISOString();
              }
           } else if (event.type === 'pipeline.started') {
              // For a robust system, we would just re-fetch the pipeline.

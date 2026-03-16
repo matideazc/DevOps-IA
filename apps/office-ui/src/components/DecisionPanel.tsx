@@ -50,7 +50,17 @@ export function DecisionPanel({ pendingCount, onDecisionResolved }: DecisionPane
     }
   };
 
-  if (pendingCount === 0 || decisions.length === 0) return null;
+  if (pendingCount === 0 || decisions.length === 0) {
+    return (
+      <div style={{ marginTop: '1rem', border: '1px solid rgba(34, 197, 94, 0.2)', borderRadius: '12px', overflow: 'hidden' }}>
+        <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.05)', padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', flexDirection: 'column' }}>
+          <Check color="#22c55e" size={32} />
+          <h3 style={{ margin: 0, color: '#22c55e', fontSize: '1rem' }}>Todo al día, Matías</h3>
+          <p className="text-muted" style={{ margin: 0, fontSize: '0.875rem' }}>No hay decisiones estructurales pendientes de aprobación.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ marginTop: '1rem', border: '1px solid #eab308', borderRadius: '12px', overflow: 'hidden' }}>
