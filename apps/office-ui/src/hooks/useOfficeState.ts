@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { io, Socket } from 'socket.io-client';
 import type { AgentState, OfficeZone } from '@ai-office/shared-types';
 
 export interface OfficeStateSnapshot {
@@ -25,38 +26,94 @@ export interface OfficeStateSnapshot {
   pendingDecisions: number;
 }
 
-export function useOfficeState(pollingIntervalMs = 2000) {
+const BACKEND_URL = 'http://localhost:3001';
+
+export function useOfficeState() {
   const [state, setState] = useState<OfficeStateSnapshot | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  // Fetch full snapshot
+  const fetchState = useCallback(async () => {
+    try {
+      const res = await fetch('/api/office/state');
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      const data = await res.json();
+      setState(data);
+      setError(null);
+    } catch (err: any) {
+      setError(err);
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
+    let socket: Socket;
 
-    async function fetchState() {
-      try {
-        const res = await fetch('/api/office/state');
-        if (!res.ok) throw new Error(`API error: ${res.status}`);
-        const data = await res.json();
-        if (mounted) {
-          setState(data);
-          setError(null);
-        }
-      } catch (err: any) {
-        if (mounted) setError(err);
-      }
-    }
+    // 1. Initial Load
+    fetchState().then(() => {
+      // 2. Connect to Socket.IO only after initial snapshot is loaded
+      socket = io(BACKEND_URL);
 
-    // Fetch immediately
-    fetchState();
+      socket.on('connect', () => setIsConnected(true));
+      socket.on('disconnect', () => setIsConnected(false));
 
-    // Setup polling
-    const interval = setInterval(fetchState, pollingIntervalMs);
-    
+      // 3. Listen to realtime events
+      socket.on('office_event', (event: any) => {
+        // When we receive an event, we merge it into the existing React state
+        setState(prev => {
+          if (!prev) return prev;
+
+          const newState = { ...prev };
+          
+          // Prepend new event to timeline (limit to 50)
+          newState.recentEvents = [event, ...prev.recentEvents].slice(0, 50);
+
+          // Update Agent States depending on event types
+          if (event.type === 'agent.state_changed') {
+            const agentIdx = newState.agents.findIndex(a => a.slug === event.payload.agentSlug);
+            if (agentIdx !== -1) {
+              newState.agents[agentIdx] = {
+                ...newState.agents[agentIdx],
+                state: event.payload.state,
+                zone: event.payload.zone
+              };
+            }
+          } else if (event.type === 'task.created') {
+             const agentIdx = newState.agents.findIndex(a => a.slug === event.payload.agentSlug);
+             if (agentIdx !== -1) {
+               newState.agents[agentIdx].currentTaskTitle = event.payload.type;
+             }
+          } else if (event.type === 'task.completed' || event.type === 'task.failed') {
+             const agentIdx = newState.agents.findIndex(a => a.slug === event.payload.agentSlug);
+             if (agentIdx !== -1) {
+               newState.agents[agentIdx].currentTaskTitle = null;
+             }
+          } else if (event.type === 'pipeline.started') {
+             // For a robust system, we would just re-fetch the pipeline.
+             fetchState(); 
+          } else if (event.type === 'pipeline.step_completed') {
+             if (newState.activePipeline && newState.activePipeline.id === event.payload.pipelineId) {
+                // Advance step
+                newState.activePipeline.currentStep = event.payload.step + 1;
+             }
+          } else if (event.type === 'pipeline.completed' || event.type === 'pipeline.failed') {
+             // When completed, fetch state to clear active pipeline and re-sync
+             fetchState();
+          } else if (event.type === 'decision.required') {
+             newState.pendingDecisions += 1;
+          } else if (event.type === 'decision.resolved') {
+             fetchState(); // Re-sync entirely to be safe
+          }
+
+          return newState;
+        });
+      });
+    });
+
     return () => {
-      mounted = false;
-      clearInterval(interval);
+      if (socket) socket.disconnect();
     };
-  }, [pollingIntervalMs]);
+  }, [fetchState]);
 
-  return { state, error };
+  return { state, error, isConnected, refresh: fetchState };
 }

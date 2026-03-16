@@ -6,6 +6,7 @@ import type {
   DecisionRequiredPayload, 
   IdeaUpdatedPayload 
 } from '@ai-office/shared-types';
+import { getSocketServer } from '../plugins/socket.js';
 
 export interface EventBusPayloads {
   'agent.state_changed': AgentStateChangedPayload;
@@ -27,7 +28,7 @@ class TypedEventBus extends EventEmitter {
       // Create a DB event
       const agentId = (payload as any).agentSlug ? await this.getAgentId((payload as any).agentSlug) : null;
       
-      await prisma.event.create({
+      const dbEvent = await prisma.event.create({
         data: {
           type: event as string,
           payload: payload as unknown as object,
@@ -36,9 +37,22 @@ class TypedEventBus extends EventEmitter {
           pipelineRunId: (payload as any).pipelineId || null,
         }
       });
-
+      
       // Emit locally for server logic
       (this as EventEmitter).emit(event as string, payload);
+
+      // Broadcasting to Frontend via websocket
+      try {
+        const io = getSocketServer();
+        io.emit('office_event', {
+          id: dbEvent.id, // Using the real DB object
+          type: event as string,
+          payload: payload,
+          timestamp: dbEvent.timestamp
+        });
+      } catch (wsErr) {
+        // Silently fail if socket is not initialized
+      }
     } catch (err) {
       console.error(`Failed to record event ${String(event)} in DB:`, err);
     }

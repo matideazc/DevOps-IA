@@ -134,6 +134,13 @@ export async function pipelinesRoute(fastify: FastifyInstance) {
         where: { status: { in: ['running', 'paused'] } },
         orderBy: { createdAt: 'desc' },
         select: { id: true, status: true, currentStep: true, steps: true },
+      }).then(async (active: { id: string; status: string; currentStep: number; steps: any; } | null) => {
+        if (active) return active;
+        // If no active, return the most recent completed/failed one
+        return fastify.prisma.pipelineRun.findFirst({
+          orderBy: { createdAt: 'desc' },
+          select: { id: true, status: true, currentStep: true, steps: true },
+        });
       }),
       fastify.prisma.event.findMany({
         orderBy: { timestamp: 'desc' },

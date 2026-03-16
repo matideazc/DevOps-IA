@@ -7,6 +7,7 @@ import { pipelinesRoute } from './routes/pipelines.js';
 import { ideasRoute } from './routes/ideas.js';
 import { decisionsRoute } from './routes/decisions.js';
 import { healthRoute } from './routes/health.js';
+import { initSocket } from './plugins/socket.js';
 
 const server = Fastify({
   logger: {
@@ -27,6 +28,7 @@ await server.register(decisionsRoute, { prefix: '/api' });
 // Start
 const port = Number(process.env['PORT'] ?? 3001);
 try {
+  initSocket(server);
   await server.listen({ port, host: '0.0.0.0' });
   console.log(`🚀 AI Office API running on http://localhost:${port}`);
 } catch (err) {

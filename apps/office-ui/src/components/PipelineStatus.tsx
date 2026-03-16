@@ -9,19 +9,29 @@ export function PipelineStatus({ pipeline }: PipelineStatusProps) {
   if (!pipeline) {
     return (
       <div className="panel">
-        <h2 style={{ marginBottom: '0.5rem' }}>Pipeline Activo</h2>
-        <div className="text-muted">No hay ejecuciones activas en este momento.</div>
+        <div className="pipeline-header">
+          <h2>Pipeline Activo</h2>
+          <span className="status-badge idle">
+            <div className="status-dot" /> IDLE
+          </span>
+        </div>
+        <div className="text-muted" style={{ marginTop: '1rem', fontStyle: 'italic' }}>
+          No hay ejecuciones activas ni historial disponible.
+        </div>
       </div>
     );
   }
 
+  const isCompleted = pipeline.status === 'completed' || pipeline.status === 'failed';
+  const displayStatus = pipeline.status.toUpperCase();
+
   return (
-    <div className="panel">
+    <div className="panel" style={{ border: isCompleted ? '1px solid var(--border-color)' : '1px solid var(--status-working)' }}>
       <div className="pipeline-header">
-        <h2>Pipeline Activo</h2>
-        <span className={`status-badge ${pipeline.status === 'running' ? 'working' : 'idle'}`}>
+        <h2>{isCompleted ? 'Último Pipeline Ejecutado' : 'Pipeline Activo'}</h2>
+        <span className={`status-badge ${isCompleted ? 'idle' : 'working'}`}>
           <div className="status-dot" />
-          {pipeline.status}
+          {displayStatus}
         </span>
       </div>
       
