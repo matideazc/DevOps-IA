@@ -16,7 +16,7 @@ const AGENT_COLORS: Record<string, number> = {
   human: 0xfacc15,           // yellow
 };
 
-// HELPER: Avatar Drawing
+// HELPER: Avatar Drawing HQ
 function drawAgentAvatar(
   gfx: PIXI.Graphics, role: string, state: string, baseColor: number, time: number, 
   localMatiasX: number, localMatiasY: number
@@ -24,6 +24,11 @@ function drawAgentAvatar(
   const isWorking = state === 'working';
   const isBlocked = state === 'blocked' || state === 'awaiting_human';
   
+  // 0. Base Avatar Ambient Shadow (Grounds the Meeple)
+  gfx.beginFill(0x000000, 0.35);
+  gfx.drawEllipse(0, 10, 14, 5); // Hard shadow directly below body
+  gfx.endFill();
+
   // 1. Auras / Extras
   if (isWorking) {
     const auraScale = 1 + Math.sin(time * 5) * 0.2;
@@ -56,12 +61,7 @@ function drawAgentAvatar(
     }
   }
 
-  // 2. Base Character Shadow
-  gfx.beginFill(0x000000, 0.4);
-  gfx.drawEllipse(0, 15, 12, 4);
-  gfx.endFill();
-
-  // 3. Draw Body (Meeple style with Strokes)
+  // 2. Draw Body (Meeple style with Strong Strokes)
   gfx.lineStyle(2, 0x111116, 1);
   gfx.beginFill(baseColor);
 
@@ -167,11 +167,19 @@ function drawAgentAvatar(
   gfx.endFill();
 }
 
-// Sub-Helpers for Pixel Props
+// Sub-Helpers for Pixel Props HQ
+function drawShadowBox(gfx: PIXI.Graphics, x: number, y: number, w: number, h: number) {
+  // Drop shadow universal prop
+  gfx.beginFill(0x000000, 0.25);
+  gfx.drawRect(x + 4, y + 4, w, h);
+  gfx.endFill();
+}
+
 function drawLaptop(gfx: PIXI.Graphics, x: number, y: number) {
+  drawShadowBox(gfx, x, y, 20, 15);
   // Base
   gfx.lineStyle(2, 0x111111, 1);
-  gfx.beginFill(0xc0c0c0);
+  gfx.beginFill(0x9ca3af); // Silver
   gfx.drawRect(x, y, 20, 15);
   gfx.endFill();
   // Screen
@@ -179,186 +187,314 @@ function drawLaptop(gfx: PIXI.Graphics, x: number, y: number) {
   gfx.beginFill(0x1a202c);
   gfx.drawRect(x + 2, y + 2, 16, 8);
   gfx.endFill();
+  // Screen glare
+  gfx.beginFill(0xffffff, 0.1);
+  gfx.drawPolygon([x + 2, y + 2, x + 8, y + 2, x + 2, y + 8]);
+  gfx.endFill();
   // Keyboard line
-  gfx.beginFill(0x999999);
+  gfx.beginFill(0x4b5563);
   gfx.drawRect(x + 3, y + 12, 14, 2);
   gfx.endFill();
 }
 
 function drawMug(gfx: PIXI.Graphics, x: number, y: number) {
+  // Shadow
+  gfx.beginFill(0x000000, 0.2);
+  gfx.drawEllipse(x + 2, y + 2, 5, 2);
+  gfx.endFill();
+  // Cup
   gfx.lineStyle(1, 0x111111, 1);
   gfx.beginFill(0xffffff);
-  gfx.drawCircle(x, y, 4);
+  gfx.drawRect(x - 4, y - 4, 8, 8);
   gfx.endFill();
+  // Coffee inside
   gfx.lineStyle(0);
-  gfx.beginFill(0x6b4c3a); // coffee
-  gfx.drawCircle(x, y, 2.5);
+  gfx.beginFill(0x3e2723); // dark coffee
+  gfx.drawRect(x - 2, y - 3, 4, 3);
   gfx.endFill();
 }
 
 function drawPlant(gfx: PIXI.Graphics, x: number, y: number) {
   // Shadow
-  gfx.beginFill(0x000000, 0.2);
-  gfx.drawCircle(x, y + 5, 12);
+  gfx.beginFill(0x000000, 0.25);
+  gfx.drawEllipse(x + 3, y + 8, 12, 5);
   gfx.endFill();
   // Pot
   gfx.lineStyle(2, 0x111111, 1);
-  gfx.beginFill(0xca8a04);
-  gfx.drawRect(x - 8, y - 8, 16, 16);
+  gfx.beginFill(0xa0522d); // Sienna
+  gfx.drawPolygon([x - 8, y - 5, x + 8, y - 5, x + 6, y + 8, x - 6, y + 8]);
   gfx.endFill();
-  // Leaves
-  gfx.beginFill(0x22c55e);
-  gfx.drawCircle(x - 6, y - 10, 8);
-  gfx.drawCircle(x + 6, y - 10, 8);
-  gfx.drawCircle(x, y - 15, 9);
+  // Leaves HQ (Asymmetric)
+  gfx.beginFill(0x2d6a4f);
+  gfx.drawCircle(x - 5, y - 12, 7);
+  gfx.drawCircle(x + 6, y - 10, 6);
+  gfx.beginFill(0x40916c);
+  gfx.drawCircle(x, y - 18, 8);
+  gfx.drawCircle(x - 8, y - 6, 5);
+  gfx.endFill();
+}
+
+function drawFilingCabinet(gfx: PIXI.Graphics, x: number, y: number) {
+  drawShadowBox(gfx, x, y, 25, 40);
+  gfx.lineStyle(2, 0x111111, 1);
+  gfx.beginFill(0x64748b); // Slate
+  gfx.drawRect(x, y, 25, 40);
+  gfx.endFill();
+  // Drawers
+  gfx.lineStyle(1, 0x475569, 1);
+  gfx.moveTo(x, y + 13); gfx.lineTo(x + 25, y + 13);
+  gfx.moveTo(x, y + 26); gfx.lineTo(x + 25, y + 26);
+  // Handles
+  gfx.lineStyle(0);
+  gfx.beginFill(0xcbd5e1);
+  gfx.drawRect(x + 8, y + 4, 9, 3);
+  gfx.drawRect(x + 8, y + 17, 9, 3);
+  gfx.drawRect(x + 8, y + 30, 9, 3);
+  gfx.endFill();
+}
+
+function drawChair(gfx: PIXI.Graphics, x: number, y: number, color: number) {
+  // Base shadow
+  gfx.beginFill(0x000000, 0.3);
+  gfx.drawEllipse(x, y + 14, 12, 4);
+  gfx.endFill();
+  // Star base / Wheels
+  gfx.lineStyle(2, 0x111111, 1);
+  gfx.beginFill(0x1f2937);
+  gfx.drawRect(x - 2, y + 6, 4, 8); // piston
+  gfx.drawRect(x - 10, y + 12, 20, 3); // wheels
+  gfx.endFill();
+  // Seat
+  gfx.beginFill(color);
+  gfx.drawRoundedRect(x - 10, y, 20, 8, 2);
+  gfx.endFill();
+  // Backrest
+  gfx.beginFill(color);
+  gfx.drawRoundedRect(x - 9, y - 12, 18, 14, 4);
+  gfx.endFill();
+  // Detail
+  gfx.lineStyle(0);
+  gfx.beginFill(0xffffff, 0.1);
+  gfx.drawRect(x - 6, y - 10, 12, 4);
   gfx.endFill();
 }
 
 function drawBookshelf(gfx: PIXI.Graphics, x: number, y: number, width: number, height: number) {
+  drawShadowBox(gfx, x, y, width, height);
   gfx.lineStyle(2, 0x111111, 1);
-  gfx.beginFill(0x8b5a2b);
+  gfx.beginFill(0x5c3a21); // Darker wood frame
   gfx.drawRect(x, y, width, height);
   gfx.endFill();
+  gfx.beginFill(0x8b5a2b); // Inner wood
+  gfx.drawRect(x + 2, y + 2, width - 4, height - 4);
+  gfx.endFill();
   // Shelves
-  gfx.lineStyle(2, 0x5c3a21, 1);
+  gfx.lineStyle(2, 0x3d2616, 1);
   gfx.moveTo(x + 2, y + height / 2);
   gfx.lineTo(x + width - 2, y + height / 2);
-  // Books (Rects)
+  // Books (Rects clustering)
   gfx.lineStyle(1, 0x111111, 1);
-  gfx.beginFill(0xef4444); gfx.drawRect(x + 5, y + 5, 6, 12); // Red book
-  gfx.beginFill(0x3b82f6); gfx.drawRect(x + 15, y + 5, 8, 12); // Blue book
-  gfx.beginFill(0xeab308); gfx.drawRect(x + 30, y + height / 2 + 5, 10, 12); // Yellow book
+  gfx.beginFill(0xef4444); gfx.drawRect(x + 5, y + 5, 8, 14); // Red book
+  gfx.beginFill(0x3b82f6); gfx.drawRect(x + 13, y + 7, 7, 12); // Blue book
+  gfx.beginFill(0x10b981); gfx.drawRect(x + 22, y + 4, 6, 15); // Green book
+  
+  gfx.beginFill(0xeab308); gfx.drawRect(x + width - 15, y + height / 2 + 5, 10, 12); 
+  gfx.beginFill(0x8b5cf6); gfx.drawRect(x + width - 25, y + height / 2 + 3, 8, 14); 
   gfx.endFill();
 }
 
-// HELPER: Environment & Room Decorations - Pixel Office Vibe
+// Procedural Floors & Walls
+
+function drawCheckerboardBase(gfx: PIXI.Graphics, rx: number, ry: number, rw: number, rh: number, c1: number, c2: number, size: number) {
+  gfx.lineStyle(0);
+  for (let y = 0; y < rh; y += size) {
+    for (let x = 0; x < rw; x += size) {
+      if (x + size > rw || y + size > rh) continue; // Keep clear bounds natively
+      const isAlt = ((x / size) + (y / size)) % 2 !== 0;
+      gfx.beginFill(isAlt ? c2 : c1);
+      gfx.drawRect(rx + x, ry + y, Math.min(size, rw - x), Math.min(size, rh - y));
+      gfx.endFill();
+    }
+  }
+}
+
+function drawWoodPlanks(gfx: PIXI.Graphics, rx: number, ry: number, rw: number, rh: number, baseColor: number) {
+  // Base
+  gfx.lineStyle(0);
+  gfx.beginFill(baseColor);
+  gfx.drawRect(rx, ry, rw, rh);
+  gfx.endFill();
+  
+  gfx.lineStyle(1, 0x000000, 0.35); // Wood seams
+  const pW = 16;
+  const pH = 40;
+  for (let x = 0; x < rw; x += pW) {
+    gfx.moveTo(rx + x, ry);
+    gfx.lineTo(rx + x, ry + rh);
+    const stagger = (x / pW) % 2 === 0 ? 0 : pH / 2;
+    for (let y = stagger; y < rh; y += pH) {
+      gfx.moveTo(rx + x, ry + y);
+      gfx.lineTo(Math.min(rx + x + pW, rx + rw), ry + y);
+    }
+  }
+}
+
+function drawIsometricWalls(gfx: PIXI.Graphics, rx: number, ry: number, rw: number, rh: number, wallColor: number, topColor: number) {
+  // Left wall top
+  gfx.lineStyle(3, 0x111111, 1);
+  gfx.beginFill(topColor);
+  gfx.drawPolygon([rx - 12, ry - 12, rx, ry, rx, ry + rh, rx - 12, ry + rh - 12]);
+  gfx.endFill();
+  
+  // Top wall top
+  gfx.beginFill(topColor);
+  gfx.drawPolygon([rx - 12, ry - 12, rx + rw - 12, ry - 12, rx + rw, ry, rx, ry]);
+  gfx.endFill();
+
+  // Face wall (only for left wall, to give height illusion)
+  gfx.lineStyle(2, 0x000000, 0.4);
+  gfx.beginFill(wallColor);
+  gfx.drawRect(rx - 12, ry - 12, 12, rh + 12);
+  gfx.endFill();
+}
+
+// HELPER: Environment & Room Decorations - Pixel Office HQ Vibe
 function drawRoomDecor(mapGraphics: PIXI.Graphics, zoneName: string, center: Point2D) {
   const isFounder = zoneName === 'founders_desk';
   const isLounge = zoneName === 'idle_lounge';
   
-  // Floor Types
-  const isWood = zoneName === 'creative_studio' || zoneName === 'command_center' || isFounder;
-  const isTiles = zoneName === 'research_lab' || zoneName === 'analysis_room' || isLounge;
-
-  // Base Room Rect
   const rw = 260; 
   const rh = 220;
   const rx = center.x - rw/2;
   const ry = center.y - rh/2;
 
-  // 1. Drop Shadow (thick dark border feeling)
-  mapGraphics.beginFill(0x000000, 0.5);
-  mapGraphics.drawRect(rx + 6, ry + 6, rw, rh);
+  // 1. Scene Shadowing
+  mapGraphics.lineStyle(0);
+  mapGraphics.beginFill(0x000000, 0.4);
+  mapGraphics.drawRect(rx + 16, ry + 16, rw, rh); // Offset base shadow
   mapGraphics.endFill();
 
-  // 2. Base Floor
-  const baseWoodColor = isFounder ? 0x4a3b32 : 0x8b6540;
-  const baseTileColor = isLounge ? 0x242d38 : 0xccd1d9;
-  
-  mapGraphics.beginFill(isWood ? baseWoodColor : baseTileColor);
-  mapGraphics.lineStyle(4, 0x111111, 1); // Thick outer wall
+  // 2. Base Floor Geometry & Falso 3D Walls
+  // We draw the floor inner bounds first
+  mapGraphics.lineStyle(4, 0x111111, 1);
+  mapGraphics.beginFill(0x000000); // underlying
   mapGraphics.drawRect(rx, ry, rw, rh);
   mapGraphics.endFill();
 
-  // 3. Floor Textures
-  mapGraphics.lineStyle(1, 0x000000, 0.15);
-  if (isWood) {
-    // Vertical wood planks
-    for (let i = 10; i < rw; i += 20) {
-      mapGraphics.moveTo(rx + i, ry);
-      mapGraphics.lineTo(rx + i, ry + rh);
-    }
-  } else if (isTiles) {
-    // Tile grid
-    for (let i = 20; i < rw; i += 30) {
-      mapGraphics.moveTo(rx + i, ry);
-      mapGraphics.lineTo(rx + i, ry + rh);
-    }
-    for (let j = 20; j < rh; j += 30) {
-      mapGraphics.moveTo(rx, ry + j);
-      mapGraphics.lineTo(rx + rw, ry + j);
-    }
+  // 3. Dense Texturing by Room
+  mapGraphics.lineStyle(0);
+  
+  if (zoneName === 'research_lab' || zoneName === 'analysis_room') {
+    // Clinical Tiles: Checkerboard
+    drawCheckerboardBase(mapGraphics, rx, ry, rw, rh, 0xdfe2e6, 0xcbd5e1, 16);
+    drawIsometricWalls(mapGraphics, rx, ry, rw, rh, 0xa0aec0, 0xe2e8f0);
+  } else if (zoneName === 'creative_studio') {
+    // Warm Wood
+    drawWoodPlanks(mapGraphics, rx, ry, rw, rh, 0xc18f59);
+    drawIsometricWalls(mapGraphics, rx, ry, rw, rh, 0x7b5836, 0xebf4ff); // blueish dry-wall top
+  } else if (zoneName === 'command_center') {
+    // Dark Tactical Wood/Carpet
+    drawCheckerboardBase(mapGraphics, rx, ry, rw, rh, 0x374151, 0x1f2937, 24);
+    drawIsometricWalls(mapGraphics, rx, ry, rw, rh, 0x111827, 0x4b5563);
+  } else if (isFounder) {
+    // Premium Mahogany Wood
+    drawWoodPlanks(mapGraphics, rx, ry, rw, rh, 0x4a2c11);
+    drawIsometricWalls(mapGraphics, rx, ry, rw, rh, 0x2d1a08, 0xd4af37); // Golden trim walls
+  } else if (isLounge) {
+    // Cafeteria Tiles
+    drawCheckerboardBase(mapGraphics, rx, ry, rw, rh, 0xf8fafc, 0x94a3b8, 20); // White & Blueish gray
+    drawIsometricWalls(mapGraphics, rx, ry, rw, rh, 0x64748b, 0xffffff);
   }
+
+  // Restore border for clipping look
+  mapGraphics.lineStyle(4, 0x111111, 1);
+  mapGraphics.drawRect(rx, ry, rw, rh);
   mapGraphics.lineStyle(0);
 
-  // 4. Props & Furniture por zona
-  
+  // 4. Props High Fidelity placement
   if (zoneName === 'research_lab') {
-    // Bookshelves on top wall
     drawBookshelf(mapGraphics, rx + 20, ry + 10, 80, 40);
-    drawBookshelf(mapGraphics, rx + 120, ry + 10, 80, 40);
+    drawFilingCabinet(mapGraphics, rx + 110, ry + 10);
     drawPlant(mapGraphics, rx + 230, ry + 30);
 
     // Desks
+    drawShadowBox(mapGraphics, center.x - 70, center.y - 10, 140, 40);
     mapGraphics.lineStyle(2, 0x111111);
-    mapGraphics.beginFill(0xcd853f); // Wood desk
+    mapGraphics.beginFill(0xb45309); // Amber wood desk
     mapGraphics.drawRect(center.x - 70, center.y - 10, 140, 40);
     mapGraphics.endFill();
     
-    // Details
+    // Desks props
     drawLaptop(mapGraphics, center.x - 40, center.y - 5);
+    drawChair(mapGraphics, center.x - 30, center.y + 40, 0x6366f1); // Indigo chair 1
+    
     drawLaptop(mapGraphics, center.x + 20, center.y - 5);
+    drawChair(mapGraphics, center.x + 30, center.y + 40, 0x6366f1); // Indigo chair 2
+    
     drawMug(mapGraphics, center.x - 10, center.y);
 
   } else if (zoneName === 'analysis_room') {
     // 2x2 Desk layout
-    mapGraphics.lineStyle(2, 0x111111);
-    mapGraphics.beginFill(0xcd853f);
-    mapGraphics.drawRect(center.x - 80, center.y - 60, 60, 35);
-    mapGraphics.drawRect(center.x + 20, center.y - 60, 60, 35);
-    mapGraphics.drawRect(center.x - 80, center.y + 40, 60, 35);
-    mapGraphics.drawRect(center.x + 20, center.y + 40, 60, 35);
-    mapGraphics.endFill();
+    const deskColor = 0xc2410c; // Orange-red wood
+    const dims = [
+      {cx: center.x - 60, cy: center.y - 50},
+      {cx: center.x + 60, cy: center.y - 50},
+      {cx: center.x - 60, cy: center.y + 50},
+      {cx: center.x + 60, cy: center.y + 50}
+    ];
 
-    drawLaptop(mapGraphics, center.x - 60, center.y - 55);
-    drawLaptop(mapGraphics, center.x + 40, center.y - 55);
-    drawLaptop(mapGraphics, center.x - 60, center.y + 45);
-    drawLaptop(mapGraphics, center.x + 40, center.y + 45);
+    dims.forEach(d => {
+      drawShadowBox(mapGraphics, d.cx - 30, d.cy - 15, 60, 30);
+      mapGraphics.lineStyle(2, 0x111111);
+      mapGraphics.beginFill(deskColor);
+      mapGraphics.drawRect(d.cx - 30, d.cy - 15, 60, 30);
+      mapGraphics.endFill();
+      drawLaptop(mapGraphics, d.cx - 15, d.cy - 10);
+      drawChair(mapGraphics, d.cx, d.cy + 25, 0x3b82f6); // Blue chairs
+    });
+
     drawPlant(mapGraphics, rx + 30, ry + 30);
-    drawPlant(mapGraphics, rx + rw - 30, ry + rh - 30);
-    
-    // Server Rack Right Wall
-    mapGraphics.lineStyle(2, 0x111111);
-    mapGraphics.beginFill(0xd1d5db);
-    mapGraphics.drawRect(rx + rw - 30, ry + 50, 20, 80);
-    mapGraphics.endFill();
-    mapGraphics.beginFill(0x3b82f6); // blink lights
-    mapGraphics.drawRect(rx + rw - 25, ry + 60, 10, 5);
-    mapGraphics.drawRect(rx + rw - 25, ry + 80, 10, 5);
-    mapGraphics.drawRect(rx + rw - 25, ry + 100, 10, 5);
-    mapGraphics.endFill();
+    drawFilingCabinet(mapGraphics, rx + rw - 35, ry + 10);
 
   } else if (zoneName === 'creative_studio') {
     // Sofa lounge area (Couches in L)
+    drawShadowBox(mapGraphics, center.x - 80, center.y - 50, 40, 90);
+    drawShadowBox(mapGraphics, center.x + 40, center.y - 50, 40, 90);
+    
     mapGraphics.lineStyle(2, 0x111111);
-    mapGraphics.beginFill(0xd946ef); // Pinkish sofas
+    mapGraphics.beginFill(0xec4899); // Pinkish sofas
     mapGraphics.drawRoundedRect(center.x - 80, center.y - 50, 40, 90, 8); // Left
     mapGraphics.drawRoundedRect(center.x + 40, center.y - 50, 40, 90, 8); // Right
     mapGraphics.endFill();
 
-    // Coffee table
-    mapGraphics.beginFill(0xcd853f);
+    // Wood Coffee table
+    drawShadowBox(mapGraphics, center.x - 25, center.y - 20, 50, 30);
+    mapGraphics.beginFill(0xd97706);
     mapGraphics.drawRect(center.x - 25, center.y - 20, 50, 30);
     mapGraphics.endFill();
     drawMug(mapGraphics, center.x, center.y - 5);
+    drawMug(mapGraphics, center.x - 10, center.y + 2);
 
-    // Painting / Board on top wall
-    mapGraphics.beginFill(0xfacc15, 0.4);
+    // Painting / Board on wall
+    drawShadowBox(mapGraphics, center.x - 50, ry + 10, 100, 20);
+    mapGraphics.beginFill(0xfcd34d);
     mapGraphics.drawRect(center.x - 50, ry + 10, 100, 20); // Pin board
     mapGraphics.endFill();
-    drawPlant(mapGraphics, rx + 20, ry + rh - 20);
+    
+    drawPlant(mapGraphics, rx + 30, ry + rh - 30);
+    drawPlant(mapGraphics, rx + rw - 30, ry + rh - 30);
 
   } else if (isFounder) {
-    // Luxury Desk
     // Soft under-rug
     mapGraphics.lineStyle(2, 0x111111);
-    mapGraphics.beginFill(0x831843); // Deep red rug
-    mapGraphics.drawRoundedRect(center.x - 70, center.y - 60, 140, 140, 12);
+    mapGraphics.beginFill(0xbe123c); // Rich red rug
+    mapGraphics.drawRoundedRect(center.x - 80, center.y - 70, 160, 160, 12);
     mapGraphics.endFill();
 
-    // Desk
+    // Luxury Desk U-Shape
+    drawShadowBox(mapGraphics, center.x - 60, center.y - 30, 120, 30);
     mapGraphics.lineStyle(2, 0x111111);
-    mapGraphics.beginFill(0x2d1b11); // Dark rich wood
+    mapGraphics.beginFill(0x1a0f0a); // Espresso wood
     mapGraphics.drawRect(center.x - 60, center.y - 30, 120, 30); // Top
     mapGraphics.drawRect(center.x - 60, center.y, 25, 40);  // Left wing
     mapGraphics.drawRect(center.x + 35, center.y, 25, 40);  // Right wing
@@ -367,43 +503,52 @@ function drawRoomDecor(mapGraphics: PIXI.Graphics, zoneName: string, center: Poi
     drawLaptop(mapGraphics, center.x - 10, center.y - 20);
     drawMug(mapGraphics, center.x + 30, center.y - 20);
     
-    // Golden Trophy / Award
-    mapGraphics.lineStyle(1, 0x000000);
-    mapGraphics.beginFill(0xfacc15);
-    mapGraphics.drawRect(center.x - 45, center.y - 20, 10, 10);
+    // Golden Trophy
+    mapGraphics.lineStyle(1, 0x111111);
+    mapGraphics.beginFill(0xfbbf24);
+    mapGraphics.drawRect(center.x - 45, center.y - 24, 12, 16);
     mapGraphics.endFill();
+
+    // CEO Chair
+    drawChair(mapGraphics, center.x, center.y + 10, 0x1f2937); // Leather black chair
 
     drawPlant(mapGraphics, rx + 40, ry + 40);
     drawPlant(mapGraphics, rx + rw - 40, ry + 40);
-    drawBookshelf(mapGraphics, center.x - 40, ry + 10, 80, 30);
+    drawBookshelf(mapGraphics, center.x - 50, ry + 10, 100, 30);
 
   } else if (zoneName === 'command_center') {
-    // Big tactical desk
+    // Giant tactical screen
+    drawShadowBox(mapGraphics, center.x - 90, ry + 10, 180, 30);
     mapGraphics.lineStyle(2, 0x111111);
-    mapGraphics.beginFill(0x4b5563); // Gray metal desk
-    mapGraphics.drawRect(center.x - 100, center.y - 20, 200, 40);
-    mapGraphics.endFill();
-
-    // Multiple laptops
-    drawLaptop(mapGraphics, center.x - 80, center.y - 10);
-    drawLaptop(mapGraphics, center.x - 20, center.y - 10);
-    drawLaptop(mapGraphics, center.x + 40, center.y - 10);
-
-    // Giant screen on wall
     mapGraphics.beginFill(0x111827);
     mapGraphics.drawRect(center.x - 90, ry + 10, 180, 30);
     mapGraphics.endFill();
     mapGraphics.lineStyle(0);
     mapGraphics.beginFill(0x10b981); // Green data line
     mapGraphics.drawRect(center.x - 80, ry + 20, 60, 5);
+    mapGraphics.beginFill(0xef4444);
     mapGraphics.drawRect(center.x + 10, ry + 25, 40, 5);
     mapGraphics.endFill();
+
+    // Central wide desk
+    drawShadowBox(mapGraphics, center.x - 90, center.y - 20, 180, 40);
+    mapGraphics.lineStyle(2, 0x111111);
+    mapGraphics.beginFill(0x4b5563); // Gray metal desk
+    mapGraphics.drawRect(center.x - 90, center.y - 20, 180, 40);
+    mapGraphics.endFill();
+
+    drawLaptop(mapGraphics, center.x - 70, center.y - 10);
+    drawChair(mapGraphics, center.x - 60, center.y + 35, 0xef4444); // Red commander chair
+    
+    drawLaptop(mapGraphics, center.x + 50, center.y - 10);
+    drawChair(mapGraphics, center.x + 60, center.y + 35, 0x10b981); // Green op chair
 
   } else if (isLounge) {
     // Breakroom
     // Vending Machine
+    drawShadowBox(mapGraphics, rx + 20, ry + 10, 35, 50);
     mapGraphics.lineStyle(2, 0x111111);
-    mapGraphics.beginFill(0xef4444); // Red machine
+    mapGraphics.beginFill(0xef4444);
     mapGraphics.drawRect(rx + 20, ry + 10, 35, 50);
     mapGraphics.endFill();
     mapGraphics.beginFill(0xbfdbfe); // Glass
@@ -411,32 +556,39 @@ function drawRoomDecor(mapGraphics: PIXI.Graphics, zoneName: string, center: Poi
     mapGraphics.endFill();
 
     // Water cooler
+    drawShadowBox(mapGraphics, rx + 70, ry + 30, 20, 30);
     mapGraphics.lineStyle(2, 0x111111);
-    mapGraphics.beginFill(0xf3f4f6); // White base
+    mapGraphics.beginFill(0xf3f4f6);
     mapGraphics.drawRect(rx + 70, ry + 30, 20, 30);
     mapGraphics.beginFill(0x3bd5fa); // Jug
-    mapGraphics.drawRect(rx + 72, ry + 10, 16, 20);
+    mapGraphics.drawCircle(rx + 80, ry + 20, 9);
     mapGraphics.endFill();
 
-    // Long tables
-    mapGraphics.beginFill(0xcd853f);
+    // Cafeteria Long tables
+    drawShadowBox(mapGraphics, center.x - 40, center.y - 20, 80, 25);
+    drawShadowBox(mapGraphics, center.x - 40, center.y + 40, 80, 25);
+    
+    mapGraphics.lineStyle(2, 0x111111);
+    mapGraphics.beginFill(0xd97706);
     mapGraphics.drawRect(center.x - 40, center.y - 20, 80, 25);
     mapGraphics.drawRect(center.x - 40, center.y + 40, 80, 25);
     mapGraphics.endFill();
 
     drawMug(mapGraphics, center.x - 20, center.y - 10);
-    drawMug(mapGraphics, center.x + 10, center.y + 50);
+    drawChair(mapGraphics, center.x, center.y - 35, 0xeab308); // Yellow dining chairs
+    drawChair(mapGraphics, center.x, center.y + 25, 0xeab308);
 
-    // Box stacks
+    // Box stacks (Delivery)
+    drawShadowBox(mapGraphics, rx + rw - 50, ry + rh - 40, 30, 30);
     mapGraphics.lineStyle(2, 0x111111);
-    mapGraphics.beginFill(0xd97706);
-    mapGraphics.drawRect(rx + rw - 40, ry + rh - 40, 20, 20);
-    mapGraphics.drawRect(rx + rw - 35, ry + rh - 55, 20, 20);
-    mapGraphics.drawRect(rx + rw - 60, ry + rh - 30, 20, 20);
+    mapGraphics.beginFill(0xbe581e);
+    mapGraphics.drawRect(rx + rw - 40, ry + rh - 40, 20, 20); // bottom box
+    mapGraphics.drawRect(rx + rw - 35, ry + rh - 55, 20, 20); // top right
+    mapGraphics.drawRect(rx + rw - 60, ry + rh - 30, 20, 20); // bottom left
     mapGraphics.endFill();
   }
 
-  // Text Stencil (More subtle)
+  // Zone Label Text 
   const text = new PIXI.Text(zoneName.replace('_', ' ').toUpperCase(), new PIXI.TextStyle({
     fill: 0xffffff,
     fontSize: 14,
@@ -444,7 +596,7 @@ function drawRoomDecor(mapGraphics: PIXI.Graphics, zoneName: string, center: Poi
     letterSpacing: 2,
     align: 'center'
   }));
-  text.alpha = 0.15; // Very subtle
+  text.alpha = 0.12; 
   text.anchor.set(0.5);
   text.position.set(center.x, ry + rh - 20);
   
@@ -533,10 +685,10 @@ export function FloorPlanView({ state }: FloorPlanViewProps) {
         const isBlocked = data.state === 'blocked' || data.state === 'awaiting_human';
         const isIdle = data.state === 'idle';
 
-        // Base opacity and breathing scale
-        gfx.alpha = isIdle ? 0.8 : 1.0;
-        const baseScale = 0.85; // Smaller, intimate scale!
-        const breathScale = isIdle ? baseScale + (Math.sin(time * 2) * 0.03) : baseScale;
+        // Base opacity and breathing scale HQ
+        gfx.alpha = isIdle ? 0.85 : 1.0;
+        const baseScale = 0.72; // Reduced scale for intimacy and harmony with HQ props
+        const breathScale = isIdle ? baseScale + (Math.sin(time * 2) * 0.02) : baseScale;
         gfx.scale.set(breathScale);
 
         // Calculate Target Line to Matias local coords
