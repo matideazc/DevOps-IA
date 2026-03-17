@@ -61,107 +61,118 @@ function drawAgentAvatar(
     }
   }
 
-  // 2. Draw Body (Meeple style with Strong Strokes)
+  // 2. Draw Body (Meeple / Chibi Pixel Art style)
+  gfx.lineStyle(2, 0x111116, 1);
+
+  // Tiny Shoes/Legs
+  gfx.lineStyle(1, 0x111116, 1);
+  gfx.beginFill(0x111116);
+  gfx.drawRect(-6, 10, 4, 4); // left shoe
+  gfx.drawRect(2, 10, 4, 4);  // right shoe
+  gfx.endFill();
+
+  // Torso / Shirt
   gfx.lineStyle(2, 0x111116, 1);
   gfx.beginFill(baseColor);
+  gfx.drawRoundedRect(-12, -4, 24, 16, 4);
+  gfx.endFill();
 
+  // Draw Specific Heads & Hair based on role
   switch (role) {
-    case 'human':
-      // Founder: Taller capsule, more imposing
-      gfx.drawRoundedRect(-14, -8, 28, 24, 6);
+    case 'human': // Founder Matías
+      // Boss Suit Jacket overlay
+      gfx.beginFill(0x1f2937); // Dark gray blazer
+      gfx.drawRect(-12, -4, 8, 16);
+      gfx.drawRect(4, -4, 8, 16);
       gfx.endFill();
+      
       // Head
-      gfx.beginFill(0xfacc15); // Yellow head
-      gfx.drawCircle(0, -18, 12);
+      gfx.beginFill(0xfacc15); // Yellow avatar
+      gfx.drawCircle(0, -14, 12);
       gfx.endFill();
-      // Glasses (sunglasses vibe)
+      // Boss Sunglasses
       gfx.beginFill(0x111116);
-      gfx.drawRoundedRect(-10, -22, 20, 6, 2);
-      gfx.lineStyle(0);
-      gfx.beginFill(0xffffff, 0.3); // reflection
-      gfx.drawRect(-8, -21, 4, 2);
+      gfx.drawRoundedRect(-10, -18, 20, 6, 2);
+      gfx.endFill();
       break;
 
-    case 'researcher':
-      // Nora: Rounded bottom, flat top body
-      gfx.drawRoundedRect(-12, -4, 24, 18, 5);
+    case 'researcher': // Nora
+      gfx.beginFill(0xffe0bd); // Skin
+      gfx.drawCircle(0, -12, 11);
       gfx.endFill();
-      // Head
-      gfx.beginFill(0xffe0bd); // Skin tone
-      gfx.drawCircle(0, -14, 10);
-      gfx.endFill();
-      // Hair (Purple bob)
+      // Purple Bob Hair
       gfx.beginFill(0x9333ea);
-      gfx.arc(0, -14, 11, Math.PI, 0);
+      gfx.arc(0, -14, 12, Math.PI, 0); // top dome
+      gfx.drawPolygon([-12, -14, -15, -2, -6, -4]); // bangs L
+      gfx.drawPolygon([12, -14, 15, -2, 6, -4]); // bangs R
       gfx.endFill();
-      // Glasses
-      gfx.lineStyle(1, 0x111116);
-      gfx.beginFill(0xffffff, 0.6);
-      gfx.drawCircle(-4, -14, 3);
-      gfx.drawCircle(4, -14, 3);
-      gfx.moveTo(-1, -14).lineTo(1, -14); // bridge
+      // Specs
+      gfx.beginFill(0xffffff, 0.5);
+      gfx.drawCircle(-4, -12, 4);
+      gfx.drawCircle(4, -12, 4);
+      gfx.endFill();
       break;
 
-    case 'analyst':
-      // Bruno: Trapezoid body (hoodie)
-      gfx.drawPolygon([-10, -5, 10, -5, 14, 15, -14, 15]);
+    case 'analyst': // Bruno
+      // Hoodie strings
+      gfx.lineStyle(1, 0x111116, 1);
+      gfx.beginFill(0xffffff);
+      gfx.drawRect(-4, -4, 2, 6);
+      gfx.drawRect(2, -4, 2, 6);
       gfx.endFill();
-      // Head
+      
+      gfx.lineStyle(2, 0x111116, 1);
       gfx.beginFill(0xffcc99);
-      gfx.drawCircle(0, -14, 9);
+      gfx.drawCircle(0, -12, 10);
       gfx.endFill();
       // Headset
-      gfx.lineStyle(2, 0x111116);
-      gfx.arc(0, -14, 10, Math.PI, 0);
-      gfx.beginFill(0x3b82f6); // blue earpiece
-      gfx.drawCircle(-10, -14, 3);
-      gfx.drawCircle(10, -14, 3);
-      gfx.beginFill(0xffffff); // mic
-      gfx.drawCircle(-12, -10, 2);
+      gfx.beginFill(0x3b82f6);
+      gfx.drawRect(-11, -15, 3, 6);
+      gfx.drawRect(8, -15, 3, 6);
+      gfx.endFill();
       break;
 
-    case 'creative_director':
-      // Bianca: Flowing sweater (rounded)
-      gfx.drawEllipse(0, 5, 14, 10);
+    case 'creative_director': // Bianca
+      // Scarf
+      gfx.beginFill(0xbe123c);
+      gfx.drawRect(-8, -4, 16, 6);
       gfx.endFill();
-      // Head
+
       gfx.beginFill(0xfac090);
-      gfx.drawCircle(0, -12, 9);
+      gfx.drawCircle(0, -12, 10);
       gfx.endFill();
-      // Beret / Hat (Pink)
-      gfx.beginFill(0xdb2777);
-      gfx.drawEllipse(2, -22, 10, 4);
+      // Flowing Hair
+      gfx.beginFill(0xdb2777); // Pinkish red
+      gfx.drawEllipse(0, -18, 12, 6);
+      gfx.drawPolygon([-12, -18, -16, 0, -8, -4]); 
       gfx.endFill();
       break;
 
-    case 'supervisor':
-      // Alfred: Broad shoulders, Suit
-      gfx.drawRect(-12, -4, 24, 18);
-      gfx.endFill();
-      // Shirt/Tie
+    case 'supervisor': // Alfred
+      // White shirt V
       gfx.beginFill(0xffffff);
-      gfx.lineStyle(2, 0x111116);
-      gfx.drawPolygon([-4, -4, 4, -4, 0, 4]); // Shirt V
-      gfx.lineStyle(0);
-      gfx.beginFill(0x22c55e);
-      gfx.drawRect(-2, -2, 4, 10); // Tie
+      gfx.drawPolygon([-4, -4, 4, -4, 0, 2]);
       gfx.endFill();
-      // Head
-      gfx.lineStyle(2, 0x111116);
+      // Tie
+      gfx.lineStyle(1, 0x111116, 1);
+      gfx.beginFill(0xef4444);
+      gfx.drawRect(-1, -2, 2, 10);
+      gfx.endFill();
+
+      gfx.lineStyle(2, 0x111116, 1);
       gfx.beginFill(0xe2b999);
-      gfx.drawCircle(0, -14, 9);
+      gfx.drawCircle(0, -12, 10);
       gfx.endFill();
-      // Glasses / Moustache combo
-      gfx.lineStyle(0);
+      // Stache
       gfx.beginFill(0x111116);
-      gfx.drawRect(-6, -11, 12, 2); // stache
+      gfx.drawRect(-5, -9, 10, 2);
+      gfx.endFill();
       break;
     
     default:
-      gfx.drawRoundedRect(-10, -5, 20, 20, 6);
-      gfx.endFill();
       gfx.beginFill(0xffcccc);
-      gfx.drawCircle(0, -14, 10);
+      gfx.drawCircle(0, -12, 10);
+      gfx.endFill();
       break;
   }
   gfx.endFill();
@@ -358,58 +369,85 @@ function drawIsometricWalls(gfx: PIXI.Graphics, rx: number, ry: number, rw: numb
   gfx.endFill();
 }
 
-// HELPER: Environment & Room Decorations - Pixel Office HQ Vibe
-function drawRoomDecor(mapGraphics: PIXI.Graphics, zoneName: string, center: Point2D) {
+function drawUnifiedBuilding(gfx: PIXI.Graphics) {
+  const B_X = 100;
+  const B_Y = 100;
+  const B_W = 1000;
+  const B_H = 600;
+
+  // 1. Scene Shadowing (Global Outline Shadow attached to the floor)
+  gfx.lineStyle(0);
+  gfx.beginFill(0x000000, 0.4);
+  gfx.drawRect(B_X + 16, B_Y + 16, B_W, B_H);
+  gfx.endFill();
+
+  // 2. Base Floor Geometry
+  gfx.lineStyle(4, 0x111111, 1);
+  gfx.beginFill(0x000000);
+  gfx.drawRect(B_X, B_Y, B_W, B_H);
+  gfx.endFill();
+
+  // 3. Draw Room Floors
+  // Top Layer
+  drawWoodPlanks(gfx, 100, 100, 300, 250, 0xc18f59); // Creative
+  drawWoodPlanks(gfx, 400, 100, 400, 250, 0x4a2c11); // Founder
+  drawCheckerboardBase(gfx, 800, 100, 300, 250, 0xdfe2e6, 0xcbd5e1, 16); // Research
+  
+  // Middle Layer (Hallway)
+  drawWoodPlanks(gfx, 100, 350, 1000, 100, 0x8b5a2b);
+  
+  // Bottom Layer
+  drawCheckerboardBase(gfx, 100, 450, 300, 250, 0xf8fafc, 0x94a3b8, 20); // Lounge
+  drawCheckerboardBase(gfx, 400, 450, 400, 250, 0x374151, 0x1f2937, 24); // Command
+  drawCheckerboardBase(gfx, 800, 450, 300, 250, 0xdfe2e6, 0xcbd5e1, 16); // Analysis
+
+  // 4. Draw Walls (Falso 3D Perimetral + Inter-room Division)
+  // Outer perimeter Top + Left
+  drawIsometricWalls(gfx, 100, 100, 1000, 600, 0x64748b, 0x94a3b8);
+  
+  // Top inner walls
+  drawIsometricWalls(gfx, 400, 100, 10, 250, 0x64748b, 0x94a3b8);
+  drawIsometricWalls(gfx, 800, 100, 10, 250, 0x64748b, 0x94a3b8);
+  drawIsometricWalls(gfx, 100, 350, 1000, 10, 0x64748b, 0x94a3b8); // Horizontal top hall wall
+
+  // Bottom inner walls
+  drawIsometricWalls(gfx, 100, 450, 1000, 10, 0x64748b, 0x94a3b8); // Horizontal bottom hall wall
+  drawIsometricWalls(gfx, 400, 450, 10, 250, 0x64748b, 0x94a3b8);
+  drawIsometricWalls(gfx, 800, 450, 10, 250, 0x64748b, 0x94a3b8);
+
+  // 5. Draw Doors (Openings in walls mapped over via Floor overlay hacks)
+  gfx.lineStyle(0);
+  drawWoodPlanks(gfx, 230, 340, 60, 30, 0x8b5a2b); // creative door
+  drawWoodPlanks(gfx, 570, 340, 60, 30, 0x8b5a2b); // founder door
+  drawWoodPlanks(gfx, 920, 340, 60, 30, 0x8b5a2b); // research door (joins wood hall)
+  
+  drawWoodPlanks(gfx, 230, 440, 60, 30, 0x8b5a2b); // lounge door
+  drawWoodPlanks(gfx, 570, 440, 60, 30, 0x8b5a2b); // command door
+  drawWoodPlanks(gfx, 920, 440, 60, 30, 0x8b5a2b); // analysis door
+  
+  // Perimeter border again to make bounds super crisp and cover bleeds
+  gfx.lineStyle(4, 0x111111, 1);
+  gfx.beginFill(0x000000, 0); // Transparent fill
+  gfx.drawRect(100, 100, 1000, 600);
+  gfx.endFill();
+}
+
+// HELPER: Environment Props & Furniture 
+function drawZoneProps(mapGraphics: PIXI.Graphics, zoneName: string, center: Point2D) {
   const isFounder = zoneName === 'founders_desk';
   const isLounge = zoneName === 'idle_lounge';
   
-  const rw = 260; 
-  const rh = 220;
-  const rx = center.x - rw/2;
-  const ry = center.y - rh/2;
-
-  // 1. Scene Shadowing
-  mapGraphics.lineStyle(0);
-  mapGraphics.beginFill(0x000000, 0.4);
-  mapGraphics.drawRect(rx + 16, ry + 16, rw, rh); // Offset base shadow
-  mapGraphics.endFill();
-
-  // 2. Base Floor Geometry & Falso 3D Walls
-  // We draw the floor inner bounds first
-  mapGraphics.lineStyle(4, 0x111111, 1);
-  mapGraphics.beginFill(0x000000); // underlying
-  mapGraphics.drawRect(rx, ry, rw, rh);
-  mapGraphics.endFill();
-
-  // 3. Dense Texturing by Room
-  mapGraphics.lineStyle(0);
-  
-  if (zoneName === 'research_lab' || zoneName === 'analysis_room') {
-    // Clinical Tiles: Checkerboard
-    drawCheckerboardBase(mapGraphics, rx, ry, rw, rh, 0xdfe2e6, 0xcbd5e1, 16);
-    drawIsometricWalls(mapGraphics, rx, ry, rw, rh, 0xa0aec0, 0xe2e8f0);
-  } else if (zoneName === 'creative_studio') {
-    // Warm Wood
-    drawWoodPlanks(mapGraphics, rx, ry, rw, rh, 0xc18f59);
-    drawIsometricWalls(mapGraphics, rx, ry, rw, rh, 0x7b5836, 0xebf4ff); // blueish dry-wall top
-  } else if (zoneName === 'command_center') {
-    // Dark Tactical Wood/Carpet
-    drawCheckerboardBase(mapGraphics, rx, ry, rw, rh, 0x374151, 0x1f2937, 24);
-    drawIsometricWalls(mapGraphics, rx, ry, rw, rh, 0x111827, 0x4b5563);
-  } else if (isFounder) {
-    // Premium Mahogany Wood
-    drawWoodPlanks(mapGraphics, rx, ry, rw, rh, 0x4a2c11);
-    drawIsometricWalls(mapGraphics, rx, ry, rw, rh, 0x2d1a08, 0xd4af37); // Golden trim walls
-  } else if (isLounge) {
-    // Cafeteria Tiles
-    drawCheckerboardBase(mapGraphics, rx, ry, rw, rh, 0xf8fafc, 0x94a3b8, 20); // White & Blueish gray
-    drawIsometricWalls(mapGraphics, rx, ry, rw, rh, 0x64748b, 0xffffff);
+  // Logical Room Bounds for exact prop placement
+  let rx, ry, rw, rh;
+  if (zoneName === 'creative_studio' || zoneName === 'idle_lounge') {
+    rx = 100; rw = 300;
+  } else if (zoneName === 'founders_desk' || zoneName === 'command_center') {
+    rx = 400; rw = 400;
+  } else {
+    rx = 800; rw = 300;
   }
-
-  // Restore border for clipping look
-  mapGraphics.lineStyle(4, 0x111111, 1);
-  mapGraphics.drawRect(rx, ry, rw, rh);
-  mapGraphics.lineStyle(0);
+  ry = (zoneName === 'idle_lounge' || zoneName === 'command_center' || zoneName === 'analysis_room') ? 450 : 100;
+  rh = 250;
 
   // 4. Props High Fidelity placement
   if (zoneName === 'research_lab') {
@@ -647,11 +685,13 @@ export function FloorPlanView({ state }: FloorPlanViewProps) {
     mapGraphics.lineStyle(0);
     // -----------------------------
     
-    // Draw Zones using the detailed Scene Polish Helper
+    // Draw Unified Building Floor and Walls
+    drawUnifiedBuilding(mapGraphics);
+
+    // Draw Props inside zones
     Object.entries(ZONE_COORDINATES).forEach(([zoneName, center]) => {
-      // Draw decor directly onto the mapGraphics context
-      const textNode = drawRoomDecor(mapGraphics, zoneName, center);
-      // Append text stencils
+      if (zoneName === 'founders_office') return; // internal duplicate fix
+      const textNode = drawZoneProps(mapGraphics, zoneName, center);
       app.stage.addChild(textNode);
     });
 
