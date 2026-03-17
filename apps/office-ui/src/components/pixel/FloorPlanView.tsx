@@ -166,6 +166,219 @@ function drawAgentAvatar(
   gfx.endFill();
 }
 
+// HELPER: Environment & Room Decorations
+function drawRoomDecor(mapGraphics: PIXI.Graphics, zoneName: string, center: Point2D) {
+  const isFounder = zoneName === 'founders_desk';
+  const isLounge = zoneName === 'idle_lounge';
+  const baseFloorColor = isFounder ? 0x181414 : (isLounge ? 0x0f0f12 : 0x1a1a20);
+  const strokeColor = isFounder ? 0x4a3b3b : 0x2d2d38;
+  const shadowColor = 0x000000;
+  
+  // 1. Drop Shadow for the Room (Elevated Platform Effect)
+  mapGraphics.beginFill(shadowColor, 0.4);
+  mapGraphics.drawRect(center.x - 145, center.y - 120, 300, 250);
+  mapGraphics.endFill();
+
+  // 2. Base Floor Plate
+  mapGraphics.beginFill(baseFloorColor);
+  mapGraphics.lineStyle(2, strokeColor, 1);
+  mapGraphics.drawRect(center.x - 150, center.y - 125, 300, 250);
+  mapGraphics.endFill();
+
+  // 3. Inner Decorators / Scene Polish per Zone
+  mapGraphics.lineStyle(0);
+  
+  if (zoneName === 'research_lab') {
+    // Researcher: L-shaped desk and light-boards
+    // Wall light board (cyan-ish)
+    mapGraphics.beginFill(0x22d3ee, 0.15);
+    mapGraphics.drawRect(center.x - 140, center.y - 115, 120, 10);
+    mapGraphics.endFill();
+    
+    // Server Racks
+    mapGraphics.beginFill(0x282835);
+    mapGraphics.drawRect(center.x + 80, center.y - 110, 50, 25);
+    mapGraphics.drawRect(center.x + 80, center.y - 80, 50, 25);
+    mapGraphics.endFill();
+    // Blinking lights on racks
+    mapGraphics.beginFill(0x00ffcc, 0.6);
+    mapGraphics.drawCircle(center.x + 85, center.y - 100, 2);
+    mapGraphics.drawCircle(center.x + 85, center.y - 70, 2);
+    mapGraphics.endFill();
+
+    // L-Shaped Desk
+    mapGraphics.beginFill(0x353545);
+    mapGraphics.drawRect(center.x - 60, center.y - 20, 120, 40); // Main
+    mapGraphics.drawRect(center.x - 60, center.y + 20, 40, 60);  // Wing
+    mapGraphics.endFill();
+    // Glowing tablets on desk
+    mapGraphics.beginFill(0x9333ea, 0.4);
+    mapGraphics.drawRect(center.x - 30, center.y - 10, 20, 15);
+    mapGraphics.drawRect(center.x + 10, center.y - 10, 20, 15);
+    mapGraphics.endFill();
+
+  } else if (zoneName === 'analysis_room') {
+    // Analyst: Dashboards, wide central table, data walls
+    // Red/Green Wall metrics
+    mapGraphics.beginFill(0x22c55e, 0.2); // Green up
+    mapGraphics.drawRect(center.x - 120, center.y - 115, 60, 6);
+    mapGraphics.beginFill(0xef4444, 0.2); // Red down
+    mapGraphics.drawRect(center.x - 50, center.y - 115, 100, 6);
+    mapGraphics.endFill();
+
+    // Central wide console
+    mapGraphics.beginFill(0x2a2a35);
+    mapGraphics.drawRoundedRect(center.x - 80, center.y - 30, 160, 60, 8);
+    mapGraphics.endFill();
+    
+    // Holographic displays / Monitors on table
+    mapGraphics.beginFill(0x3b82f6, 0.3); // Blue glow
+    mapGraphics.drawRect(center.x - 50, center.y - 15, 30, 20);
+    mapGraphics.drawRect(center.x - 10, center.y - 15, 60, 20);
+    mapGraphics.endFill();
+
+  } else if (zoneName === 'creative_studio') {
+    // Creative Studio: Warmer tone rug, brainstorming boards, circular table
+    // Cozy rug
+    mapGraphics.beginFill(0x831843, 0.3); // Deep pinkish rug
+    mapGraphics.drawCircle(center.x, center.y, 80);
+    mapGraphics.endFill();
+
+    // Moodboard / Post-its wall
+    mapGraphics.beginFill(0x2d2d38);
+    mapGraphics.drawRect(center.x - 140, center.y - 80, 15, 160);
+    mapGraphics.endFill();
+    // Post-its
+    mapGraphics.beginFill(0xfacc15, 0.8); // Yellow post-it
+    mapGraphics.drawRect(center.x - 138, center.y - 60, 8, 8);
+    mapGraphics.drawRect(center.x - 138, center.y - 45, 8, 8);
+    mapGraphics.beginFill(0xf472b6, 0.8); // Pink post-it
+    mapGraphics.drawRect(center.x - 138, center.y - 20, 8, 8);
+    mapGraphics.drawRect(center.x - 138, center.y + 10, 8, 8);
+    mapGraphics.endFill();
+
+    // Central circular wood-like table
+    mapGraphics.beginFill(0x453535);
+    mapGraphics.drawCircle(center.x, center.y, 45);
+    mapGraphics.endFill();
+    // Scatter on table
+    mapGraphics.beginFill(0xdddddd, 0.6);
+    mapGraphics.drawRect(center.x - 15, center.y - 10, 15, 20); // papers
+    mapGraphics.drawCircle(center.x + 20, center.y + 5, 4);     // mug
+    mapGraphics.endFill();
+
+  } else if (isFounder) {
+    // Founder's Desk: "La Tarima" (The Dais) and majestic desk
+    // Inner dais (raised platform)
+    mapGraphics.beginFill(0x261d1d);
+    mapGraphics.lineStyle(1, 0x5a4b4b, 0.5);
+    // Beveled raised floor
+    mapGraphics.drawRect(center.x - 120, center.y - 95, 240, 190);
+    mapGraphics.lineStyle(0);
+    mapGraphics.beginFill(0x2a2020);
+    mapGraphics.drawRect(center.x - 110, center.y - 85, 220, 170);
+    mapGraphics.endFill();
+
+    // Executive Desk (Thicker U-Shape with rich wood/leather tones)
+    mapGraphics.beginFill(0x1a1a1c); // Dark desk shadow
+    mapGraphics.drawRect(center.x - 65, center.y - 25, 130, 25);
+    mapGraphics.beginFill(0x4a3a3a); // Mahogany tone
+    mapGraphics.drawRect(center.x - 70, center.y - 30, 140, 25); // Top
+    mapGraphics.drawRect(center.x - 70, center.y - 5, 30, 50);  // Left wing
+    mapGraphics.drawRect(center.x + 40, center.y - 5, 30, 50);  // Right wing
+    mapGraphics.endFill();
+
+    // Subtle golden glow under the chair area
+    mapGraphics.beginFill(0xffaa00, 0.08);
+    mapGraphics.drawCircle(center.x, center.y + 40, 60);
+    mapGraphics.endFill();
+
+  } else if (zoneName === 'command_center') {
+    // Command Center: Hexagonal master console, tactical screens
+    // Giant tactical screen on top wall
+    mapGraphics.beginFill(0x101018);
+    mapGraphics.drawRect(center.x - 100, center.y - 115, 200, 20);
+    mapGraphics.beginFill(0x4ade80, 0.15); // Green tactical map glow
+    mapGraphics.drawRect(center.x - 95, center.y - 110, 190, 10);
+    mapGraphics.endFill();
+
+    // Hexagonal command console
+    mapGraphics.beginFill(0x22222a);
+    mapGraphics.drawPolygon([
+      center.x - 50, center.y - 30,
+      center.x + 50, center.y - 30,
+      center.x + 80, center.y + 10,
+      center.x + 50, center.y + 50,
+      center.x - 50, center.y + 50,
+      center.x - 80, center.y + 10
+    ]);
+    mapGraphics.endFill();
+    
+    // Inner cut of console
+    mapGraphics.beginFill(0x1a1a20);
+    mapGraphics.drawPolygon([
+      center.x - 30, center.y - 10,
+      center.x + 30, center.y - 10,
+      center.x + 50, center.y + 15,
+      center.x + 30, center.y + 30,
+      center.x - 30, center.y + 30,
+      center.x - 50, center.y + 15
+    ]);
+    mapGraphics.endFill();
+
+  } else if (isLounge) {
+    // Idle Lounge: Large central rug, distinct plants, couch blocks
+    // Large dark geometric rug
+    mapGraphics.beginFill(0x181822);
+    mapGraphics.drawRoundedRect(center.x - 80, center.y - 60, 160, 120, 20);
+    mapGraphics.endFill();
+    
+    // Lounge Couches (L-shape seating)
+    mapGraphics.beginFill(0x2a2a35); // modular couch
+    mapGraphics.drawRoundedRect(center.x - 40, center.y - 90, 80, 25, 8); // top couch
+    mapGraphics.drawRoundedRect(center.x - 90, center.y - 40, 25, 80, 8); // side couch
+    mapGraphics.endFill();
+
+    // Circular tables & Plants
+    mapGraphics.beginFill(0x112211); // Plant shadow
+    mapGraphics.drawCircle(center.x - 120, center.y - 95, 20);
+    mapGraphics.drawCircle(center.x + 120, center.y + 95, 20);
+    mapGraphics.beginFill(0x228833); // Plant leaves
+    mapGraphics.drawCircle(center.x - 120, center.y - 95, 14);
+    mapGraphics.drawCircle(center.x + 120, center.y + 95, 14);
+    mapGraphics.beginFill(0x44aa44);
+    mapGraphics.drawCircle(center.x - 123, center.y - 92, 7);
+    mapGraphics.drawCircle(center.x + 117, center.y + 92, 7);
+    mapGraphics.endFill();
+
+    // Watercooler / Coffee machine corner
+    mapGraphics.beginFill(0x252530);
+    mapGraphics.drawRect(center.x + 100, center.y - 110, 35, 25);
+    mapGraphics.beginFill(0x3bd5fa, 0.6); // Water jug
+    mapGraphics.drawCircle(center.x + 110, center.y - 100, 8);
+    mapGraphics.endFill();
+  }
+
+  // Zone Label Text (Stencil style, deeper into floor)
+  const text = new PIXI.Text(zoneName.replace('_', ' ').toUpperCase(), new PIXI.TextStyle({
+    fill: 0x555566,
+    fontSize: 16,
+    fontFamily: 'monospace',
+    fontWeight: '900',
+    letterSpacing: 4,
+    align: 'center'
+  }));
+  text.alpha = 0.3; // Made slightly more transparent to not fight with richer decor
+  text.anchor.set(0.5);
+  // Push text lower in the lounge or founder context
+  const textOffsetY = isFounder ? -110 : (isLounge ? -100 : -100);
+  text.position.set(center.x, center.y + textOffsetY);
+  
+  // Return text to add it to stage dynamically, or mapGraphics directly handles drawing, 
+  // but PIXI Text is a DisplayObject so it must be added to stage by the caller.
+  return text;
+}
+
 export function FloorPlanView({ state }: FloorPlanViewProps) {
   console.log("FloorPlanView render start.");
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -192,108 +405,29 @@ export function FloorPlanView({ state }: FloorPlanViewProps) {
     canvasRef.current.appendChild(app.view as any);
     appRef.current = app;
 
-    // 2. Draw Static Map Background (Decorated)
+    // 2. Draw Static Map Background (Decorated & Grid)
     const mapGraphics = new PIXI.Graphics();
     
-    // Draw Zones
+    // --- Draw Global Floor Grid ---
+    mapGraphics.lineStyle(1, 0xffffff, 0.03); // Very subtle white grid
+    const gridSize = 40;
+    for (let x = 0; x <= CANVAS_WIDTH; x += gridSize) {
+      mapGraphics.moveTo(x, 0);
+      mapGraphics.lineTo(x, CANVAS_HEIGHT);
+    }
+    for (let y = 0; y <= CANVAS_HEIGHT; y += gridSize) {
+      mapGraphics.moveTo(0, y);
+      mapGraphics.lineTo(CANVAS_WIDTH, y);
+    }
+    mapGraphics.lineStyle(0);
+    // -----------------------------
+    
+    // Draw Zones using the detailed Scene Polish Helper
     Object.entries(ZONE_COORDINATES).forEach(([zoneName, center]) => {
-      const isFounder = zoneName === 'founders_desk';
-      const isLounge = zoneName === 'idle_lounge';
-      const baseFloorColor = isFounder ? 0x1f1919 : (isLounge ? 0x0f0f12 : 0x1e1e24);
-      const strokeColor = isFounder ? 0x4a3b3b : 0x2d2d38;
-      
-      // Floor Plate
-      mapGraphics.beginFill(baseFloorColor);
-      mapGraphics.lineStyle(2, strokeColor, 1);
-      // Founder has an octagonal or larger feel, but we stick to rect for collisions. Make it slightly thicker.
-      mapGraphics.drawRect(center.x - 150, center.y - 125, 300, 250);
-      mapGraphics.endFill();
-
-      // Inner decorators (Sci-Fi Office Vibe)
-      mapGraphics.lineStyle(0);
-      if (zoneName === 'research_lab' || zoneName === 'analysis_room') {
-        // Draw server racks / data banks
-        mapGraphics.beginFill(0x282835);
-        mapGraphics.drawRect(center.x - 130, center.y - 110, 40, 15);
-        mapGraphics.drawRect(center.x - 80, center.y - 110, 40, 15);
-        mapGraphics.drawRect(center.x - 30, center.y - 110, 40, 15);
-        mapGraphics.endFill();
-        // Console desk
-        mapGraphics.beginFill(0x353545);
-        mapGraphics.drawRect(center.x - 40, center.y - 20, 80, 40);
-        mapGraphics.endFill();
-      } else if (zoneName === 'creative_studio') {
-        // Large canvas / whiteboard
-        mapGraphics.beginFill(0x282835);
-        mapGraphics.drawRect(center.x - 140, center.y - 100, 15, 200);
-        mapGraphics.endFill();
-        mapGraphics.beginFill(0x884488, 0.2); // subtle pink glow
-        mapGraphics.drawRect(center.x - 130, center.y - 90, 10, 180);
-        mapGraphics.endFill();
-        // Central island
-        mapGraphics.beginFill(0x353545);
-        mapGraphics.drawCircle(center.x, center.y, 35);
-        mapGraphics.endFill();
-      } else if (isFounder) {
-        // Executive Desk (U-Shape)
-        mapGraphics.beginFill(0x403030);
-        mapGraphics.drawRect(center.x - 60, center.y - 30, 120, 20); // Top
-        mapGraphics.drawRect(center.x - 60, center.y - 10, 20, 40);  // Left wing
-        mapGraphics.drawRect(center.x + 40, center.y - 10, 20, 40);  // Right wing
-        mapGraphics.endFill();
-        // Subtle glow on floor
-        mapGraphics.beginFill(0xffaa00, 0.05);
-        mapGraphics.drawCircle(center.x, center.y, 80);
-        mapGraphics.endFill();
-      } else if (zoneName === 'command_center') {
-        // Hexagonal or multi-panel desk
-        mapGraphics.beginFill(0x353545);
-        mapGraphics.drawPolygon([
-          center.x - 40, center.y - 20,
-          center.x + 40, center.y - 20,
-          center.x + 60, center.y + 10,
-          center.x + 40, center.y + 40,
-          center.x - 40, center.y + 40,
-          center.x - 60, center.y + 10
-        ]);
-        mapGraphics.endFill();
-      } else if (isLounge) {
-        // Pixel Office style Lounge Elements
-        // Large central rug
-        mapGraphics.beginFill(0x262635);
-        mapGraphics.drawRoundedRect(center.x - 70, center.y - 45, 140, 90, 12);
-        mapGraphics.endFill();
-        
-        // Circular tables / Plants
-        mapGraphics.beginFill(0x112211); // Plant shadow
-        mapGraphics.drawCircle(center.x - 120, center.y - 95, 18);
-        mapGraphics.beginFill(0x228833); // Plant leaves
-        mapGraphics.drawCircle(center.x - 120, center.y - 95, 12);
-        mapGraphics.beginFill(0x44aa44);
-        mapGraphics.drawCircle(center.x - 123, center.y - 92, 6);
-        mapGraphics.endFill();
-
-        // Watercooler / Coffee machine corner
-        mapGraphics.beginFill(0x353545);
-        mapGraphics.drawRect(center.x + 110, center.y - 100, 30, 20);
-        mapGraphics.beginFill(0x3bd5fa); // Water jug
-        mapGraphics.drawCircle(center.x + 118, center.y - 100, 8);
-        mapGraphics.endFill();
-      }
-
-      // Zone Label Text (more embedded, like floor stencils)
-      const text = new PIXI.Text(zoneName.replace('_', ' ').toUpperCase(), new PIXI.TextStyle({
-        fill: 0x555566,
-        fontSize: 16,
-        fontFamily: 'monospace',
-        fontWeight: '900',
-        letterSpacing: 4,
-        align: 'center'
-      }));
-      text.alpha = 0.5;
-      text.anchor.set(0.5);
-      text.position.set(center.x, center.y - 100);
-      app.stage.addChild(text);
+      // Draw decor directly onto the mapGraphics context
+      const textNode = drawRoomDecor(mapGraphics, zoneName, center);
+      // Append text stencils
+      app.stage.addChild(textNode);
     });
 
     app.stage.addChildAt(mapGraphics, 0);
